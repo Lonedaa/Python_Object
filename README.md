@@ -33,11 +33,11 @@
          * 输入*号退出查询，返回登录界面
 
     * 通信协议：
-         *登录： LOGIN account password
-         *注册： LOGON account password username
-         *查询： SEARCH word
-         *历史： HISTORY number
-         *退出： EXIT
+         * 登录： LOGIN account password
+         * 注册： LOGON account password username
+         * 查询： SEARCH word
+         * 历史： HISTORY number
+         * 退出： EXIT
 
 5. 罗列功能逻辑（每个功能确定服务端和客户端该做什么，编写代码测试）
     * 服务端：
