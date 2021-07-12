@@ -1,7 +1,7 @@
 import pymysql
 import datetime
 from dictServer.mydefine import *
-
+import hashlib
 # 宏定义
 log = Log()
 hist = History()
@@ -31,6 +31,9 @@ class DatabaseController:
         self._cur.execute(sql)
         result = self._cur.fetchone()
         if result:
+            hash = hashlib.md5("意外不，我也是盐".encode())  # 生成对象
+            hash.update(password.encode('utf8'))
+            password = hash.hexdigest()
             if result[log.PASSWORD] == password:
                 self._now_user = (account, password, result[log.USERNAME])
                 return "密码正确"
@@ -47,6 +50,9 @@ class DatabaseController:
         :return:保存提示--“success” e
         """
         try:
+            hash = hashlib.md5("意外不，我也是盐".encode())  # 生成对象
+            hash.update(password.encode('utf8'))
+            password = hash.hexdigest()
             sql = "insert into userinfo(account,password,username)values(%s,%s,%s)"
             self._cur.execute(sql, (account, password, username))
             self._db.commit()
@@ -93,11 +99,14 @@ class DatabaseController:
         :return: 查结果
         """
         if int(n) > 0:
-            sql = "select * from history where account=%s order by time limit %s"
+            sql = "select * from history where account=%s order by time DESC limit %s"
             self._cur.execute(sql, (self._now_user[0], int(n)))
             return self._cur.fetchall()
         else:
             return "Error"
+
+    def close(self):
+        self._db.close()
 
 # --------------------------------test--------------------------------------------
 # dbc = DatabaseController({"host": "localhost",

@@ -18,6 +18,12 @@ class TCPServer:
         self._ADDR = (HOST, PORT)
         self._init()
         super().__init__()
+        self._dbc = DatabaseController({"host": "localhost",
+                                  "port": 3306,
+                                  "user": "root",
+                                  "password": "123456",
+                                  "database": "dict",
+                                  "charset": "utf8"})
 
     def _init(self):
         """
@@ -52,19 +58,13 @@ class TCPServer:
     def _history(self, c, dbc, num):
         result = dbc.show_history(num)
         for h in result:
-            meg = "%s %s %s" % (h[1], dbc.search_word(h[1], 0), h[2])
-            meg = "STEP " + meg
+            meg = "单词--> %s  解释--> %s 时间--> %s" % (h[1], dbc.search_word(h[1], 0), h[2])
+            meg = "**STEP %%" + meg
             c.send(meg.encode())
         sleep(0.1)
         c.send(b"^^END**")
 
-    def _handel(self, c):
-        dbc = DatabaseController({"host": "localhost",
-                                  "port": 3306,
-                                  "user": "root",
-                                  "password": "123456",
-                                  "database": "dict",
-                                  "charset": "utf8"})
+    def _handel(self, c,dbc):
         while True:
             data = c.recv(1024).decode()
             mes = data.split(" ")
@@ -85,8 +85,10 @@ class TCPServer:
         while True:
             c, addr = self._s.accept()
             print("收到连接来自：", addr)
-            p = Process(target=self._handel, args=(c,))
+            p = Process(target=self._handel, args=(c,self._dbc))
             p.start()
+        self._dbc.close()
+        self._s.close()
 
 
 if __name__ == "__main__":

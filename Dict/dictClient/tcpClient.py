@@ -1,19 +1,19 @@
 from socket import *
 import sys
+import getpass  # 隐藏输入
+import hashlib  # 转换加密
 
 
 def menu():
-    print("----------------------")
-    print("|  1.login 2.logon   |")
-    print("|      3.exit        |")
-    print("----------------------")
+    print("==================================")
+    print("    login      logon      exit    ")
+    print("==================================")
 
 
 def search():
-    print("--------------------")
-    print("|  1.word    2.#n  |")
-    print("|      3.*exit     |")
-    print("--------------------")
+    print("====================================")
+    print("    word    #n    *exit    *back    ")
+    print("====================================")
 
 
 class TCPClient:
@@ -36,39 +36,62 @@ class TCPClient:
         self._s = socket(AF_INET, SOCK_STREAM)
         self._s.connect(self._ADDR)
 
+    @staticmethod
+    def _login_input():
+        account = input("请输入账号(输入*back返回上一级):>").strip()
+        if account == "*back":
+            return
+        password = getpass.getpass("请输入密码:>").strip()
+        hash = hashlib.md5("惊喜不，我是盐".encode())  # 生成对象
+        hash.update(password.encode('utf8'))
+        password = hash.hexdigest()
+        msg = "LOGIN %s %s" % (account, password)
+        return msg
+
     def _login(self):
         while True:
-            account = input("请输入账号:>").strip()
-            if account == "exit":
+            msg = self._login_input()
+            if not msg:
                 break
-            password = input("请输入密码:>").strip()
-            msg = "LOGIN %s %s" % (account, password)
             self._s.send(msg.encode())
             info = self._s.recv(1024).decode()
             if info == "密码正确":
                 print("登录成功")
                 self._search()
+                break
             else:
                 print(info)
 
+    @staticmethod
+    def _logon_input():
+        account = input("请输入账号(输入*back返回上一级):>").strip()
+        if account == "*back":
+            return
+        password = getpass.getpass("请输入密码:>").strip()
+        hash = hashlib.md5("惊喜不，我是盐".encode())  # 生成对象
+        hash.update(password.encode('utf8'))
+        password = hash.hexdigest()
+        username = input("请输入用户名：").strip()
+        msg = "LOGON %s %s %s" % (account, password, username)
+        return msg
+
     def _logon(self):
         while True:
-            account = input("请输入账号:>").strip()
-            if account == "exit":
+            msg = self._logon_input()
+            if not msg:
                 break
-            password = input("请输入密码:>").strip()
-            username = input("请输入用户名：").strip()
-            msg = "LOGON %s %s %s" % (account, password, username)
             self._s.send(msg.encode())
             info = self._s.recv(1024).decode()
             if info == "success":
                 print("注册成功")
                 self._search()
+                break
             else:
                 print(info)
 
     def _search(self):
         while True:
+            search()
             info = input("查询:>")
             if info[0] == "#" and info[1:].isdigit():
                 msg = "HISTORY %s" % info[1:]
@@ -77,9 +100,10 @@ class TCPClient:
                     data = self._s.recv(2048).decode()
                     if data == "^^END**":
                         break
-                    for i in data.split("STEP "):
+                    for i in data.split("**STEP %%"):
                         print(i)
-                print("hhh")
+            elif info == "*back":
+                break
             elif info == "*exit":
                 self._s.send("EXIT".encode())
                 sys.exit("客户端已退出")
