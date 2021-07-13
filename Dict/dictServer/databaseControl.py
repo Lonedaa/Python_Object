@@ -95,7 +95,7 @@ class DatabaseController:
     def show_history(self, n):
         """
             功能：查询搜索历史
-        :param n: 查询数量
+        :param n: 查询数量f
         :return: 查结果
         """
         if int(n) > 0:
